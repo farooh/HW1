@@ -25,12 +25,12 @@ public class DoubleLinkedList<T> implements IList<T> {
         this.size = 0;
     }
 
+    // Adds an element to the end of the the list
     @Override
     public void add(T item) {
         if (size == 0) {
 	        	front = new Node<T>(item);
 	        	back = front;
-	        	//needed? 
 	        	front.prev = null;
 	    		back.next = null;
         } else {
@@ -41,7 +41,7 @@ public class DoubleLinkedList<T> implements IList<T> {
         size++;
     }
 
-    //Check if right exception or nosuch element except
+    // Removes an element from the end of the list and returns it's data
     @Override
     public T remove() {
     		if (size == 0) {
@@ -59,10 +59,11 @@ public class DoubleLinkedList<T> implements IList<T> {
     		return result;
     }
 
+    // Finds the element at the given index and returns it's data
     @Override
     public T get(int index) {
     		checkBounds(index, 1);
-    		//if in the first half, start at front
+    		// If in the first half, start at front
     		if (index < size/2) {
     			Node<T> curr = front;
     			int currIndex = 0;
@@ -71,7 +72,7 @@ public class DoubleLinkedList<T> implements IList<T> {
     				currIndex++;
     			}
     			return curr.data;
-    		//else start from the back.
+    		// Else start from the back.
     		} else {
     			Node<T> curr = back;
     			int currIndex = size-1;
@@ -83,26 +84,29 @@ public class DoubleLinkedList<T> implements IList<T> {
     		}
     }
 
+    //Finds the element at the given index and modifies it's data to the given data
+    //If no element exists at that index, it creates a new element with the given data
     @Override
     public void set(int index, T item) {
     		checkBounds(index, 1);
         Node<T> node = new Node<>(item);
-        //if there is 1 or no nodes
+        // If there is 1 or no nodes in the list
         if (size == 0 || size == 1) {
 	        	front = node;
 	        	back = front;
-	    // Case when setting front
+	    // Sets front if there are more than 1 element in the list
 	    } else if (index == 0) {
 		    	node.next = front.next;
 		    	front.next.prev = node;
 		    	front = node;
-	        // Case when setting back
+	    // Sets back if there are more than 1 element in the list
 	    } else if (index == size - 1) {
 		    	node.prev = back.prev;
 		    	back.prev.next = node;
 		    	back = node;
+	    // Sets any other index
 	    } else {
-	    		//if in the first half, start at front
+	    		// If in the first half, start at front
 			if (index < size/2) {
 				Node<T> curr = front;
 				int currIndex = 0;
@@ -114,7 +118,7 @@ public class DoubleLinkedList<T> implements IList<T> {
 		        	curr.next.prev = node;
 		        	node.prev = curr.prev;
 		        	curr.prev.next = node;
-			//else start from the back.
+			// Else start from the back.
 			} else {
 				Node<T> curr = back;
 				int currIndex = size-1;
@@ -129,48 +133,28 @@ public class DoubleLinkedList<T> implements IList<T> {
 			}
         }   
     }
-    
-    //Private helper method that checks if the given index
-    //is within bounds for setting or removing within the list
-    //or the next index after the list ends.
-    private void checkBounds(int index, int type) {
-    		//checks if index is within list
-    		if (type == 1) {
-    			if (index < 0 || index >= this.size()) {
-    				throw new IndexOutOfBoundsException();
-    			}
-    		//checks if index is within list or the index after
-    		//the list ends
-    		} else {
-    			if (index < 0 || index >= this.size() +1) {
-    				throw new IndexOutOfBoundsException();
-	    		}
-		}
-    }
 
+    // Inserts an element with the given data at the given index
     @Override
     public void insert(int index, T item) {
     		checkBounds(index, 2);
-        // If list is empty or index is after the last element then 
-    		//call the add method
+        // If list is empty or index is after the last element, 
+    		// call the add method
         if (size == 0 | index == size) {
             add(item);
-        // Add to front of the list
-        //If index is the end of the list
-    	} else {
+    		} else {
 	        Node<T> node = new Node<>(item);
-	    	if (index == 0) {
-		        //Node<T> node = new Node<>(item);
+	        // Add to front of the list
+	        if (index == 0) {
 		        node.next = this.front;
 		        front.prev = node;
 		        front = node;
 		        size++;
-	        // If anywhere else in the list
+	        // If any other index in the list
+		    // If in the first half, start at front
 			} else if (index <= size / 2) {
 	            Node<T> curr = front.next;
-	            // Loop through the list until we get to the index we want
-	            int currIndex = 1;
-	            //current != null not neccesary? 
+	            int currIndex = 1; 
 	            while (currIndex != index) {
 	                curr = curr.next;
 	                currIndex++;
@@ -181,6 +165,7 @@ public class DoubleLinkedList<T> implements IList<T> {
 	            previous.next = node;
 	            curr.prev = node;
 	            size++;
+	        // Else start from the back.
 	        } else {
 		        Node<T> curr = back;
 		        int currIndex = size-1;
@@ -195,34 +180,29 @@ public class DoubleLinkedList<T> implements IList<T> {
 		        curr.prev = node;
 		        size++;
 	        }
-    	}
+    		}
     }
 
+    // Deletes an element at the given index and returns it's data
+    // Shifts all remaining elements in the list forward
     @Override
     public T delete(int index) {
     		checkBounds(index, 1);
     		T result = null;
-        // if index is the last element, call remove
+        // If index is the last element in the list, call remove
         if (index == size - 1) {
             return remove();
-            //may need to add one to size so that it isn't called in this and 
-            //remove method
-            // If index is front of the list
+        // If index is the front of the list
         } else if (index == 0) { 
-        	result = front.data;	
-        	front.next.prev = null;
+	        	result = front.data;	
+	        	front.next.prev = null;
             front = front.next;
-            
-//            Node<T> temp = front.next;
-//            front.next.prev = null;
-//            front.next = null;
-//            front = temp;
-        // If index is in the middle of the list
+        // If index is anywhere else in the list
         } else {
+        		// If in the first half, start at front
         		if (index < size / 2) {
                 Node<T> curr = front.next;
                 int currIndex = 1;
-                //current != null not neccesary? 
                 while (currIndex != index) {
                     curr = curr.next;
                     currIndex++;
@@ -230,12 +210,12 @@ public class DoubleLinkedList<T> implements IList<T> {
                 result = curr.data;
                 curr.prev.next = curr.next;
                 curr.next.prev = curr.prev;
-                //check if these bottom two are necessary 
                 curr.next = null;
                 curr.prev = null;
+            // Else start from the back.
             } else {
 	    	        Node<T> curr = back.prev;
-	    	        int currIndex = size-2;
+	    	        int currIndex = size -2;
 	    			while (currIndex != index) {
 	    				curr = curr.prev;
 	    				currIndex--;
@@ -243,7 +223,6 @@ public class DoubleLinkedList<T> implements IList<T> {
 	    			result = curr.data;
                 curr.prev.next = curr.next;
                 curr.next.prev = curr.prev;
-                //check if these bottom two are necessary 
                 curr.next = null;
                 curr.prev = null;
             }
@@ -252,46 +231,63 @@ public class DoubleLinkedList<T> implements IList<T> {
         return result;
     }
 
+    // Returns the first index of an element with the given data in the list
     @Override
     public int indexOf(T item) {
     		int index = 0;
         Node<T> curr = this.front;
         while (curr != null) {
-//             If item is founds returns index
+        		// Allows for null to be searched
             if (item == null & curr.data == item) {
                 return index;
-            } else
-            	if (curr.data.equals(item)) {
+            } else if (curr.data.equals(item)) {
                 return index;
             }
             curr = curr.next;
             index++;
         }
-        // If item is not found, returns -1
+        // If an element with that data is not found, returns -1
         return -1;  
     }
 
+    // Returns the size of the list
     @Override
     public int size() {
     		return size;
     }
 
+    // Checks the data for the given data and returns true if it 
+    // is found in the list
     @Override
     public boolean contains(T other) {
-    		// Makes temporary pointer to front
         Node<T> curr = this.front;
         while (curr != null) {
-            if (other == null & curr.data == other) {
+	        // Allows for null to be searched    
+	        	if (other == null & curr.data == other) {
                 return true;
-                // If other is found returns true
-            } else 
-            	if (curr.data.equals(other)) {
-                return true;
-            }
-            curr = curr.next;
+	        } else if (curr.data.equals(other)) {
+	            return true;
+	        }
+	        curr = curr.next;
         }
-        // If not found, return false
+        // If an element with that data is not found, returns false
         return false;    
+    }
+    
+    // Private helper method that checks for the given index
+    private void checkBounds(int index, int type) {
+    		// Checks if given index is within list
+    		if (type == 1) {
+    			if (index < 0 || index >= size) {
+    				throw new IndexOutOfBoundsException();
+    			}
+    		// Checks if give index is within list or the index after
+    		// the list ends
+    		} else {
+    			if (index < 0 || index >= size +1 ) {
+    				throw new IndexOutOfBoundsException();
+	    		}
+		}
     }
 
     @Override
