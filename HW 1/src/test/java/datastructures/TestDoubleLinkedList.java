@@ -358,6 +358,70 @@ public class TestDoubleLinkedList extends BaseTest {
     }
 
     @Test(timeout=SECOND)
+    public void testDeleteBasic() {
+        IList<String> list = this.makeBasicList();
+        list.add("d");
+        list.add("e");
+        list.add("f");
+        
+        assertEquals("c", list.delete(2));
+        this.assertListMatches(new String[] {"a", "b", "d", "e", "f"}, list);
+
+        assertEquals("f", list.delete(4));
+        this.assertListMatches(new String[] {"a", "b", "d", "e"}, list);
+
+        assertEquals("a", list.delete(0));
+        this.assertListMatches(new String[] {"b", "d", "e"}, list);
+    }
+    
+    @Test(timeout=SECOND)
+    public void testDeleteSingleElement() {
+        IList<String> list = new DoubleLinkedList<>();
+        list.add("a");
+
+        list.delete(0);
+        this.assertListMatches(new String[] {}, list);
+    }
+    
+    @Test(timeout=SECOND)
+    public void testDeleteOnEmptyListThrowsException() {
+        IList<String> list = this.makeBasicList();
+        list.delete(0);
+        list.delete(0);
+        list.delete(0);
+        
+        try {
+            list.delete(0);
+            // We didn't throw an exception? Fail now.
+            fail("Expected IndexOutOfBoundsException");
+        } catch (IndexOutOfBoundsException ex) {
+            // Do nothing: this is ok
+        }
+    }
+
+    @Test
+    public void testDeleteOutOfBounds() {
+        IList<String> list = this.makeBasicList();
+
+        try {
+            list.delete(4);
+            // We didn't throw an exception? Fail now.
+            fail("Expected IndexOutOfBoundsException");
+        } catch (IndexOutOfBoundsException ex) {
+            // Do nothing: this is ok
+        }
+        
+        try {
+            list.delete(-1);
+            // We didn't throw an exception? Fail now.
+            fail("Expected IndexOutOfBoundsException");
+        } catch (IndexOutOfBoundsException ex) {
+            // Do nothing: this is ok
+        }
+    }
+
+    
+    @Test(timeout=SECOND)
     public void testIndexOfAndContainsBasic() {
         IList<String> list = new DoubleLinkedList<>();
 
@@ -565,157 +629,6 @@ public class TestDoubleLinkedList extends BaseTest {
         for (int num : list) {
             assertEquals(count, num);
             count += 2;
-        }
-    }
-    @Test(timeout=SECOND)
-    public void testDeleteBasic() {
-        IList<String> list = this.makeBasicList();
-        list.add("d");
-        list.add("e");
-        
-        assertEquals("a", list.delete(0));
-        this.assertListMatches(new String[] {"b", "c", "d", "e"}, list);
-
-        assertEquals("c", list.delete(1));
-        this.assertListMatches(new String[] {"b", "d", "e"}, list);
-
-        assertEquals("e", list.delete(2));
-        this.assertListMatches(new String[] {"b", "d"}, list);
-    }
-    
-    @Test(timeout=SECOND)
-    public void testDeleteSingleElement() {
-        IList<String> list = new DoubleLinkedList<>();
-        list.add("a");
-
-        this.assertListMatches(new String[] {"a"}, list);
-
-        list.delete(0);
-        
-        this.assertListMatches(new String[] {}, list);
-    }
-    
-    @Test(timeout=SECOND)
-    public void testDeleteOnEmptyListThrowsException() {
-        IList<String> list = this.makeBasicList();
-        list.delete(0);
-        list.delete(0);
-        list.delete(0);
-        try {
-            list.delete(0);
-            // We didn't throw an exception? Fail now.
-            fail("Expected IndexOutOfBoundsException");
-        } catch (IndexOutOfBoundsException ex) {
-            // Do nothing: this is ok
-        }
-    }
-
-    @Test
-    public void testDeleteOutOfBounds() {
-        IList<String> list = this.makeBasicList();
-
-        try {
-            list.delete(-1);
-            fail("Expected IndexOutOfBoundsException");
-        } catch (IndexOutOfBoundsException ex) {
-            // Do nothing: this is ok
-        }
-
-        try {
-            list.delete(4);
-            fail("Expected IndexOutOfBoundsException");
-        } catch (IndexOutOfBoundsException ex) {
-            // Do nothing: this is ok
-        }
-    }
-
-    @Test(timeout=15 * SECOND)
-    public void testInsertAndDeleteAtEndIsEfficient() {
-        IList<Integer> list = new DoubleLinkedList<>();
-        int cap = 5000000;
-        for (int i = 0; i < cap; i++) {
-            list.insert(list.size(), i * 2);
-        }
-        assertEquals(cap, list.size());
-        
-        for (int i = cap - 1; i >= 0; i--) {
-            int value = list.delete(list.size() - 1);
-            assertEquals(i * 2, value);
-        }
-
-        assertEquals(0, list.size());
-    }
-
-    @Test(timeout=15 * SECOND)
-    public void testInsertAndDeleteNearEndIsEfficient() {
-        IList<Integer> list = new DoubleLinkedList<>();
-        list.add(-1);
-        list.add(-2);
-        
-        int cap = 5000000;
-        for (int i = 0; i < cap; i++) {
-            list.insert(list.size() - 2, i * 2);
-        }
-        assertEquals(cap + 2, list.size());
-        
-        for (int i = cap - 1; i >= 0; i--) {
-            int value = list.delete(list.size() - 3);
-            assertEquals(i * 2, value);
-        }
-
-        assertEquals(2, list.size());
-    }
-
-    @Test(timeout=15 * SECOND)
-    public void testInsertAndDeleteAtFrontIsEfficient() {
-        IList<Integer> list = new DoubleLinkedList<>();
-        int cap = 5000000;
-        for (int i = 0; i < cap; i++) {
-            list.insert(0, i * 2);
-        }
-        assertEquals(cap, list.size());
-        
-        for (int i = cap - 1; i >= 0; i--) {
-            int value = list.delete(0);
-            assertEquals(i * 2, value);
-        }
-
-        assertEquals(0, list.size());
-    }
-    
-    @Test(timeout=SECOND)
-    public void testAlternatingInsertAndDeleteNearEnd() {
-        int iterators = 1000;
-
-        IList<String> list = new DoubleLinkedList<>();
-        list.add("a");
-        list.add("b");
-
-        for (int i = 0; i < iterators; i++) {
-            String entry = "" + i;
-            list.insert(list.size() - 2, entry);
-            assertEquals(3, list.size());
-
-            String out = list.delete(list.size() - 3);
-            assertEquals(entry, out);
-            assertEquals(2, list.size());
-        }
-    }
-    
-    @Test(timeout=SECOND)
-    public void testAlternatingInsertAndDeleteAtFront() {
-        int iterators = 1000;
-
-        IList<String> list = new DoubleLinkedList<>();
-
-        for (int i = 0; i < iterators; i++) {
-            String entry = "" + i;
-            list.insert(0, entry);
-            assertEquals(1, list.size());
-
-            String out = list.delete(0);
-            assertEquals(entry, out);
-            assertEquals(0, list.size());
         }
     }
 }
