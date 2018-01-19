@@ -4,10 +4,6 @@ import calculator.errors.EvaluationError;
 import datastructures.concrete.DoubleLinkedList;
 import datastructures.interfaces.IDictionary;
 import datastructures.interfaces.IList;
-import misc.exceptions.NotYetImplementedException;
-import calculator.errors.EvaluationError;
-import datastructures.interfaces.IDictionary;
-import misc.exceptions.NotYetImplementedException;
 
 /**
  * All of the static methods in this class are given the exact same parameters for
@@ -40,7 +36,7 @@ public class ExpressionManipulators {
      */
     public static AstNode handleToDouble(Environment env, AstNode node) {
         // To help you get started, we've implemented this method for you.
-        // You should fill in the TODOs in the 'toDoubleHelper' method.
+        // You should fill in the Todos in the 'toDoubleHelper' method.
         return new AstNode(toDoubleHelper(env.getVariables(), node.getChildren().get(0)));
     }
         
@@ -56,7 +52,6 @@ public class ExpressionManipulators {
         } else if (node.isOperation()) {
             String name = node.getName();
             IList<AstNode> list = node.getChildren();
-            //Double number = 0.0;
             if (name.equals("+")) {
                 return toDoubleHelper(variables, list.get(0)) + toDoubleHelper(variables, list.get(1));
             } else if (name.equals("-")) {
@@ -76,7 +71,6 @@ public class ExpressionManipulators {
             } else {
                 throw new EvaluationError("This operation is unknown or hasn't been implemented yet");
             }
-            //return number;
         } else {
             throw new EvaluationError("This node type is unknown or hasn't been implemented yet");
         }
@@ -148,9 +142,7 @@ public class ExpressionManipulators {
             }
         }
         return child;
-    }
-
-    
+    }  
     
     /**
      * Accepts a 'plot(exprToPlot, var, varMin, varMax, step)' AstNode and
@@ -187,7 +179,7 @@ public class ExpressionManipulators {
      * @throws EvaluationError  if 'step' is zero or negative
      */
     public static AstNode plot(Environment env, AstNode node) {
-        // TODO: Your code here
+        // : Your code here
         // Note: every single function we add MUST return an
         // AST node that your "simplify" function is capable of handling.
         // However, your "simplify" function doesn't really know what to do
@@ -196,29 +188,25 @@ public class ExpressionManipulators {
         // arbitrary number.
         //
         // When working on this method, you should uncomment the following line:
-        //return new AstNode(1);
-        
-//        IDictionary<String, AstNode> variables = env.getVariables();
-//        //'plot(exprToPlot, var, varMin, varMax, step)'
-//        AstNode function = child.get(0);
-//        AstNode var = child.get(1);   
-        
-        IList<AstNode> child = node.getChildren(); //0:expr, 1: var, 2:min, 3:max,4:gap
+        //return new AstNode(1);      
+        IList<AstNode> child = node.getChildren(); 
         IDictionary<String, AstNode> variables = env.getVariables();
         double varMin = toDoubleHelper(variables, child.get(2));
         double varMax = toDoubleHelper(variables, child.get(3));
         double step = toDoubleHelper(variables, child.get(4));
-        //think it should be this instead. if (child.get(1).isVariable()) {
-        if (child.get(2).isVariable()) {
-            if (!variables.containsKey(child.get(2).getName())) {
+        if (child.get(1).isVariable()) {
+            if (variables.containsKey(child.get(1).getName())) {
                 throw new EvaluationError("Variable was already defined");
             }
         }
-//        Need to fix this so that it will work. 
-//        if (!variables.containsKey(node.getName())) {
-//            throw new EvaluationError("This expression contains an undefined variable");
-//        }
-        
+        for (int i = 0; i < child.size(); i++) {
+            AstNode curr = child.get(i);
+            if (curr.getChildren() == null || curr.getChildren().size() == 0) {
+                if (curr.isVariable() && !variables.containsKey(curr.getName())) {
+                    throw new EvaluationError("This expression contains an undefined variable");
+                }
+            }
+        }
         if (varMin > varMax) {
             throw new EvaluationError("Min Variable is greater than Max Variable");
         } else if (step <= 0) {
@@ -239,9 +227,7 @@ public class ExpressionManipulators {
             }
             variables.remove(exprToPlot.getChildren().get(1).getName());
             env.getImageDrawer().drawScatterPlot("Plot", child.get(1).getName(), "output", xValues, yValues);
-
         }
-
         return new AstNode(1);
     }
 }
