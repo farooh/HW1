@@ -43,54 +43,42 @@ public class ExpressionManipulators {
         // You should fill in the TODOs in the 'toDoubleHelper' method.
         return new AstNode(toDoubleHelper(env.getVariables(), node.getChildren().get(0)));
     }
-
+        
     private static double toDoubleHelper(IDictionary<String, AstNode> variables, AstNode node) {
         // There are three types of nodes, so we have three cases.
         if (node.isNumber()) {
             return node.getNumericValue();
         } else if (node.isVariable()) {
             if (!variables.containsKey(node.getName())) {
-                throw new EvaluationError("This variable has not yet been defined.");
+                throw new EvaluationError("This variable hasn't been defined");
             }
-            if (node.getChildren().size() > 0) {
-                return toDoubleHelper(variables, node.getChildren().get(0));
-            } else if (variables.get(node.getName()).isOperation() || 
-                variables.get(node.getName()).isVariable()) {
-                    return toDoubleHelper(variables, variables.get(node.getName()));
-            } else {
-                return variables.get(node.getName()).getNumericValue();
-            }
-        } else {
-            IList<AstNode> copy = new DoubleLinkedList<AstNode>();
-            for (int i = 0; i < node.getChildren().size(); i++) {
-                copy.add(node.getChildren().get(i));
-            }
-            AstNode changes = new AstNode(node.getName(), copy);
-            String name = changes.getName();
+            return toDoubleHelper(variables, variables.get(node.getName()));
+        } else if (node.isOperation()) {
+            String name = node.getName();
+            IList<AstNode> list = node.getChildren();
+            //Double number = 0.0;
             if (name.equals("+")) {
-                return toDoubleHelper(variables, changes.getChildren().get(0)) +
-                        toDoubleHelper(variables, changes.getChildren().get(1));
+                return toDoubleHelper(variables, list.get(0)) + toDoubleHelper(variables, list.get(1));
             } else if (name.equals("-")) {
-                return toDoubleHelper(variables, changes.getChildren().get(0)) -
-                        toDoubleHelper(variables, changes.getChildren().get(1));                
+                return toDoubleHelper(variables, list.get(0)) - toDoubleHelper(variables, list.get(1));
             } else if (name.equals("*")) {
-                return toDoubleHelper(variables, changes.getChildren().get(0)) *
-                        toDoubleHelper(variables, changes.getChildren().get(1));                
+                return toDoubleHelper(variables, list.get(0)) * toDoubleHelper(variables, list.get(1));
             } else if (name.equals("/")) {
-                return toDoubleHelper(variables, changes.getChildren().get(0)) /
-                        toDoubleHelper(variables, changes.getChildren().get(1));                
+                return toDoubleHelper(variables, list.get(0)) / toDoubleHelper(variables, list.get(1));    
             } else if (name.equals("^")) {
-                return Math.pow(toDoubleHelper(variables, changes.getChildren().get(0)),
-                        toDoubleHelper(variables, changes.getChildren().get(1)));               
+                return Math.pow(toDoubleHelper(variables, list.get(0)), toDoubleHelper(variables, list.get(1)));
             } else if (name.equals("negate")) {
-                return -1 * (toDoubleHelper(variables, changes.getChildren().get(0)));
+                return -1 * toDoubleHelper(variables, list.get(0));
             } else if (name.equals("sin")) {
-                return Math.sin(toDoubleHelper(variables, changes.getChildren().get(0)));
+                return Math.sin(toDoubleHelper(variables, list.get(0)));
             } else if (name.equals("cos")) {
-                return Math.cos(toDoubleHelper(variables, changes.getChildren().get(0)));
+                return Math.cos(toDoubleHelper(variables, list.get(0)));
             } else {
-                throw new EvaluationError("Unknown type error");
+                throw new EvaluationError("This operation is unknown or hasn't been implemented yet");
             }
+            //return number;
+        } else {
+            throw new EvaluationError("This node type is unknown or hasn't been implemented yet");
         }
     }
 
@@ -127,40 +115,43 @@ public class ExpressionManipulators {
     }
     
     private static AstNode handleSimplifyHelper(IDictionary<String, AstNode> variables, AstNode node) {
-        AstNode changes = node;
-        if (changes.isNumber()) {
-            return new AstNode(changes.getNumericValue());
-        } else if (changes.isVariable()) {
-            if (!variables.containsKey(changes.getName())) {
-                return changes;
-            } else if (variables.get(changes.getName()).isNumber()) {
-                return variables.get(changes.getName());
+        AstNode child = node;
+        if (child.isNumber()) {
+            return new AstNode(child.getNumericValue());
+        } else if (child.isVariable()) {
+            if (!variables.containsKey(child.getName())) {
+                return child;
+            } else if (variables.get(child.getName()).isNumber()) {
+                return variables.get(child.getName());
             } else {
-                changes = handleSimplifyHelper(variables, variables.get(changes.getName()));
+                child = handleSimplifyHelper(variables, variables.get(child.getName()));
             }
         } else {
             IList<AstNode> copy = new DoubleLinkedList<AstNode>();
             for (int i = 0; i < node.getChildren().size(); i++) {
                 copy.add(node.getChildren().get(i));
             }
-            changes = new AstNode(node.getName(), copy);
-            String name = changes.getName();
+            child = new AstNode(node.getName(), copy);
+            String name = child.getName();
             if (name.equals("+") || name.equals("-") || name.equals("*")) {
-                if (changes.getChildren().get(0).isNumber() && changes.getChildren().get(1).isNumber()) {
-                    return new AstNode(toDoubleHelper(variables, changes));
+                if (child.getChildren().get(0).isNumber() && child.getChildren().get(1).isNumber()) {
+                    return new AstNode(toDoubleHelper(variables, child));
                 } else {
-                    changes.getChildren().set(0, handleSimplifyHelper(variables, changes.getChildren().get(0)));
-                    changes.getChildren().set(1, handleSimplifyHelper(variables, changes.getChildren().get(1)));
+                    child.getChildren().set(0, handleSimplifyHelper(variables, child.getChildren().get(0)));
+                    child.getChildren().set(1, handleSimplifyHelper(variables, child.getChildren().get(1)));
                 }
             } else if (name.equals("/")) {
-                changes.getChildren().set(0, handleSimplifyHelper(variables, changes.getChildren().get(0)));
-                changes.getChildren().set(1, handleSimplifyHelper(variables, changes.getChildren().get(1)));
+                child.getChildren().set(0, handleSimplifyHelper(variables, child.getChildren().get(0)));
+                child.getChildren().set(1, handleSimplifyHelper(variables, child.getChildren().get(1)));
             } else {
-                changes.getChildren().set(0, handleSimplifyHelper(variables, changes.getChildren().get(0)));
+                child.getChildren().set(0, handleSimplifyHelper(variables, child.getChildren().get(0)));
             }
         }
-        return changes;
+        return child;
     }
+
+    
+    
     /**
      * Accepts a 'plot(exprToPlot, var, varMin, varMax, step)' AstNode and
      * generates the corresponding plot. Returns some arbitrary AstNode.
@@ -197,41 +188,6 @@ public class ExpressionManipulators {
      */
     public static AstNode plot(Environment env, AstNode node) {
         // TODO: Your code here
-        IDictionary<String, AstNode> variables = env.getVariables();
-            if (node.getChildren().get(2).isVariable()) {
-            if (!variables.containsKey(node.getChildren().get(2).getName())) {
-                throw new EvaluationError("Variable Already Defined");
-            }
-        }
-        double step = toDoubleHelper(variables, node.getChildren().get(4));
-        double varMin = toDoubleHelper(variables, node.getChildren().get(2));
-        double varMax = toDoubleHelper(variables, node.getChildren().get(3));
-        if ((varMin > varMax) || (step <= 0)) {
-            throw new EvaluationError("varMin is greater than varMax");
-        } else {
-            IList<AstNode> copy = new DoubleLinkedList<>();
-            for (int i = 0; i < node.getChildren().size(); i++) {
-                copy.add(node.getChildren().get(i));
-            }
-            AstNode exprToPlot = new AstNode(node.getName(), copy);
-            IList<Double> xValues = new DoubleLinkedList<Double>();
-            IList<Double> yValues = new DoubleLinkedList<Double>();
-            for (double i = 0; i <= (varMax-varMin)/step; i++) {
-                double value = i*step + varMin;
-                xValues.add(value);
-                AstNode xValue = new AstNode(value);
-                variables.put(exprToPlot.getChildren().get(1).getName(), xValue);
-                yValues.add(toDoubleHelper(variables, exprToPlot.getChildren().get(0)));
-                
-            }
-            variables.remove(exprToPlot.getChildren().get(1).getName());
-            String title = "My Title";
-            String xAxisLabel = "x";
-            String yAxisLabel = "y";
-            env.getImageDrawer().drawScatterPlot(title, xAxisLabel, yAxisLabel, xValues, yValues);
-            
-        }
-
         // Note: every single function we add MUST return an
         // AST node that your "simplify" function is capable of handling.
         // However, your "simplify" function doesn't really know what to do
@@ -240,7 +196,52 @@ public class ExpressionManipulators {
         // arbitrary number.
         //
         // When working on this method, you should uncomment the following line:
-        //
-         return new AstNode(1);
+        //return new AstNode(1);
+        
+//        IDictionary<String, AstNode> variables = env.getVariables();
+//        //'plot(exprToPlot, var, varMin, varMax, step)'
+//        AstNode function = child.get(0);
+//        AstNode var = child.get(1);   
+        
+        IList<AstNode> child = node.getChildren(); //0:expr, 1: var, 2:min, 3:max,4:gap
+        IDictionary<String, AstNode> variables = env.getVariables();
+        double varMin = toDoubleHelper(variables, child.get(2));
+        double varMax = toDoubleHelper(variables, child.get(3));
+        double step = toDoubleHelper(variables, child.get(4));
+        //think it should be this instead. if (child.get(1).isVariable()) {
+        if (child.get(2).isVariable()) {
+            if (!variables.containsKey(child.get(2).getName())) {
+                throw new EvaluationError("Variable was already defined");
+            }
+        }
+//        Need to fix this so that it will work. 
+//        if (!variables.containsKey(node.getName())) {
+//            throw new EvaluationError("This expression contains an undefined variable");
+//        }
+        
+        if (varMin > varMax) {
+            throw new EvaluationError("Min Variable is greater than Max Variable");
+        } else if (step <= 0) {
+            throw new EvaluationError("Step is zero or negative");
+        } else {
+            IList<AstNode> copy = new DoubleLinkedList<>();
+            for (int i = 0; i < child.size(); i++) {
+                copy.add(child.get(i));
+            }
+            AstNode exprToPlot = new AstNode(node.getName(), copy);
+            IList<Double> xValues = new DoubleLinkedList<Double>();
+            IList<Double> yValues = new DoubleLinkedList<Double>();
+            for (double i = varMin; i <= varMax; i+= step) {
+                xValues.add(i);
+                variables.put(exprToPlot.getChildren().get(1).getName(), new AstNode(i));
+                yValues.add(toDoubleHelper(variables, exprToPlot.getChildren().get(0)));
+                
+            }
+            variables.remove(exprToPlot.getChildren().get(1).getName());
+            env.getImageDrawer().drawScatterPlot("Plot", child.get(1).getName(), "output", xValues, yValues);
+
+        }
+
+        return new AstNode(1);
     }
 }
